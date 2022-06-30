@@ -21,25 +21,49 @@ class CounterScreen extends StatefulWidget {
 }
 
 class CounterScreenState extends State<CounterScreen> {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    // loginBloc = BlocProvider.of<LoginBloc>(context);
     ToastContext().init(context);
     return BlocProvider(
       create: (context) => CounterBloc(),
-      child: MaterialApp(
-          home: Scaffold(
-        body: Container(
-          alignment: Alignment.center,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints.expand(),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                BlocBuilder<CounterBloc, CounterState>(
-                    builder: (context, state) {
-                  return Row(
+      child: const IncDecClass(),
+    );
+  }
+}
+
+class IncDecClass extends StatefulWidget {
+  const IncDecClass({Key? key}) : super(key: key);
+
+  @override
+  State<IncDecClass> createState() => _IncDecClassState();
+}
+
+class _IncDecClassState extends State<IncDecClass> {
+  late int intCounterValues;
+
+  @override
+  void initState() {
+    intCounterValues = 0;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+        home: Scaffold(
+      body: Container(
+        alignment: Alignment.center,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints.expand(),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              BlocListener<CounterBloc, CounterState>(
+                  listener: (context, state) {
+                    intCounterValues = state.intCounterValue;
+                    setState(() {});
+                  },
+                  child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
@@ -53,7 +77,7 @@ class CounterScreenState extends State<CounterScreen> {
                         },
                       ),
                       Text(
-                        'Counter value: ${state.intCounterValue}',
+                        'Counter value: $intCounterValues',
                         style: const TextStyle(fontSize: 16),
                       ),
                       MaterialButton(
@@ -66,14 +90,11 @@ class CounterScreenState extends State<CounterScreen> {
                         },
                       ),
                     ],
-                  );
-                  // color: Colors.greenAccent,
-                }),
-              ],
-            ),
+                  )),
+            ],
           ),
         ),
-      )),
-    );
+      ),
+    ));
   }
 }
