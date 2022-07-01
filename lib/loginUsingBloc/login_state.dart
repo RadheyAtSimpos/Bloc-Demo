@@ -5,8 +5,7 @@ class LoginInitialState extends LoginState{}
 class LoginSuccessfullyState extends LoginState{}
 
 class LoginSuccessfullyMessageState extends LoginState{
-  final String strSuccessMessage;
-  LoginSuccessfullyMessageState(this.strSuccessMessage);
+  LoginSuccessfullyMessageState();
 }
 
 class LoginErrorState extends LoginState{

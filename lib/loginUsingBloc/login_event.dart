@@ -8,7 +8,5 @@ class LoginTextChangedEvent extends LoginEvent{
 }
 
 class LoginSubmittedEvent extends LoginEvent{
-  final String userNameValue;
-  final String passwordValue;
-  LoginSubmittedEvent({required this.userNameValue, required this.passwordValue});
+  LoginSubmittedEvent();
 }

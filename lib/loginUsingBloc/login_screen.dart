@@ -1,4 +1,6 @@
 import 'package:bloc_demo/loginUsingBloc/login_bloc.dart';
+import 'package:bloc_demo/loginUsingBloc/login_event.dart';
+import 'package:bloc_demo/loginUsingBloc/login_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toast/toast.dart';
@@ -17,17 +19,36 @@ class MyAppScreen extends StatefulWidget {
 }
 
 class MyAppScreenState extends State<MyAppScreen> {
+  @override
+  Widget build(BuildContext context) {
+    ToastContext().init(context);
+
+    return BlocProvider(
+      create: (context) => LoginBloc(),
+      child: const SignInClass(),
+    );
+  }
+
+  void showToast(String msg, {int? duration, int? gravity}) {
+    Toast.show(msg, duration: duration, gravity: gravity);
+  }
+}
+
+class SignInClass extends StatefulWidget {
+  const SignInClass({Key? key}) : super(key: key);
+
+  @override
+  State<SignInClass> createState() => _SignInClassState();
+}
+
+class _SignInClassState extends State<SignInClass> {
   final controllerEmailId = TextEditingController();
   final controllerPassword = TextEditingController();
   final FocusNode focusNodeEmailId = FocusNode();
   final FocusNode focusNodePassword = FocusNode();
-  late LoginBloc loginBloc;
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    loginBloc = BlocProvider.of<LoginBloc>(context);
-    ToastContext().init(context);
     return MaterialApp(
       home: Scaffold(
         body: Container(
@@ -39,12 +60,30 @@ class MyAppScreenState extends State<MyAppScreen> {
               children: [
                 Container(
                   margin: const EdgeInsets.all(30.0),
-                  // color: Colors.greenAccent,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: <Widget>[
                       Column(
                         children: <Widget>[
+                          BlocBuilder<LoginBloc, LoginState>(
+                            builder: (context, state) {
+                              if (state is LoginErrorState) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 10.0),
+                                  child: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      state.strErrorMessage,
+                                      style: const TextStyle(
+                                          fontSize: 18.0, color: Colors.teal),
+                                    ),
+                                  ),
+                                );
+                              } else {
+                                return Container();
+                              }
+                            },
+                          ),
                           const Padding(
                             padding: EdgeInsets.only(top: 10.0),
                             child: Align(
@@ -64,15 +103,21 @@ class MyAppScreenState extends State<MyAppScreen> {
                               keyboardType: TextInputType.text,
                               focusNode: focusNodeEmailId,
                               controller: controllerEmailId,
+                              onChanged: (text) {
+                                BlocProvider.of<LoginBloc>(context).add(
+                                    LoginTextChangedEvent(
+                                        passwordValue: controllerPassword.text,
+                                        userNameValue: controllerEmailId.text));
+                              },
                               style: const TextStyle(
                                   fontSize: 18, color: Colors.blueGrey),
                               decoration: const InputDecoration(
                                 hintText: "Type here",
                                 hintStyle:
-                                TextStyle(fontSize: 18, color: Colors.grey),
+                                    TextStyle(fontSize: 18, color: Colors.grey),
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide:
-                                  BorderSide(color: Colors.blueGrey),
+                                      BorderSide(color: Colors.blueGrey),
                                 ),
                                 focusedBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(color: Colors.teal),
@@ -99,15 +144,21 @@ class MyAppScreenState extends State<MyAppScreen> {
                               obscureText: true,
                               focusNode: focusNodePassword,
                               controller: controllerPassword,
+                              onChanged: (text) {
+                                BlocProvider.of<LoginBloc>(context).add(
+                                    LoginTextChangedEvent(
+                                        passwordValue: controllerPassword.text,
+                                        userNameValue: controllerEmailId.text));
+                              },
                               style: const TextStyle(
                                   fontSize: 18.0, color: Colors.blueGrey),
                               decoration: const InputDecoration(
                                 hintText: "Type here",
                                 hintStyle:
-                                TextStyle(fontSize: 18, color: Colors.grey),
+                                    TextStyle(fontSize: 18, color: Colors.grey),
                                 enabledBorder: UnderlineInputBorder(
                                   borderSide:
-                                  BorderSide(color: Colors.blueGrey),
+                                      BorderSide(color: Colors.blueGrey),
                                 ),
                                 focusedBorder: UnderlineInputBorder(
                                   borderSide: BorderSide(color: Colors.teal),
@@ -117,14 +168,14 @@ class MyAppScreenState extends State<MyAppScreen> {
                           ),
                           Padding(
                               padding:
-                              const EdgeInsets.only(top: 10, bottom: 10),
+                                  const EdgeInsets.only(top: 10, bottom: 10),
                               child: Row(
                                 children: <Widget>[
                                   Checkbox(
                                     checkColor: Colors.white,
                                     fillColor:
-                                    MaterialStateProperty.resolveWith(
-                                        getColor),
+                                        MaterialStateProperty.resolveWith(
+                                            getColor),
                                     value: isChecked,
                                     onChanged: (bool? value) {},
                                   ),
@@ -142,31 +193,39 @@ class MyAppScreenState extends State<MyAppScreen> {
                                   ),
                                 ],
                               )),
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                top: 10, bottom: 10, left: 20, right: 20),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 60,
-                              child: OutlinedButton(
-                                child: const Text(
-                                  "Login",
-                                  style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  primary: Colors.white,
-                                  backgroundColor: Colors.teal,
-                                  shape: RoundedRectangleBorder(
-                                      side: const BorderSide(
-                                          color: Colors.blue,
-                                          width: 1,
-                                          style: BorderStyle.solid),
-                                      borderRadius: BorderRadius.circular(50)),
-                                ),
-                                onPressed: () async {
-                                  /*if (controllerEmailId.text.isEmpty) {
+                          BlocBuilder<LoginBloc, LoginState>(
+                            builder: (context, state) {
+                              if (state is LoginSuccessfullyMessageState) {
+                               print('objectasssssss');
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(
+                                    top: 10, bottom: 10, left: 20, right: 20),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  height: 60,
+                                  child: OutlinedButton(
+                                    child: const Text(
+                                      "Login",
+                                      style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      primary: Colors.white,
+                                      backgroundColor: Colors.teal,
+                                      shape: RoundedRectangleBorder(
+                                          side: const BorderSide(
+                                              color: Colors.blue,
+                                              width: 1,
+                                              style: BorderStyle.solid),
+                                          borderRadius:
+                                              BorderRadius.circular(50)),
+                                    ),
+                                    onPressed: () async {
+                                      BlocProvider.of<LoginBloc>(context).add(
+                                          LoginSubmittedEvent());
+                                      /*if (controllerEmailId.text.isEmpty) {
                                     showToast("Please enter email",
                                         duration: Toast.lengthShort,
                                         gravity: Toast.bottom);
@@ -190,9 +249,12 @@ class MyAppScreenState extends State<MyAppScreen> {
                                         duration: Toast.lengthShort,
                                         gravity: Toast.bottom);
                                   }
-                                */},
-                              ),
-                            ),
+                                */
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                           Padding(
                             padding: const EdgeInsets.only(
@@ -257,4 +319,3 @@ Color getColor(Set<MaterialState> states) {
   }
   return Colors.grey;
 }
-

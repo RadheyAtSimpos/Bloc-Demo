@@ -7,7 +7,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     on<LoginTextChangedEvent>((event, emit) {
       if (event.userNameValue == "") {
         emit(LoginErrorState("Please enter username"));
-      } else if (event.passwordValue == "") {
+      } else if (event.passwordValue == "" || event.passwordValue.length <= 1) {
         emit(LoginErrorState("Please enter password"));
       } else {
         LoginSuccessfullyState();
@@ -15,7 +15,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     });
 
     on<LoginSubmittedEvent>((event, emit) {
-      emit(LoginSuccessfullyMessageState("Login successfully"));
+      print('Hello object');
+      emit(LoginSuccessfullyMessageState());
     });
   }
 }
