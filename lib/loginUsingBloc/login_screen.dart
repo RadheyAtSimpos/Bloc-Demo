@@ -196,7 +196,7 @@ class _SignInClassState extends State<SignInClass> {
                           BlocBuilder<LoginBloc, LoginState>(
                             builder: (context, state) {
                               if (state is LoginSuccessfullyMessageState) {
-                               print('objectasssssss');
+                                print('objectasssssss');
                               }
                               return Padding(
                                 padding: const EdgeInsets.only(
@@ -223,8 +223,8 @@ class _SignInClassState extends State<SignInClass> {
                                               BorderRadius.circular(50)),
                                     ),
                                     onPressed: () async {
-                                      BlocProvider.of<LoginBloc>(context).add(
-                                          LoginSubmittedEvent());
+                                      BlocProvider.of<LoginBloc>(context)
+                                          .add(LoginSubmittedEvent());
                                       /*if (controllerEmailId.text.isEmpty) {
                                     showToast("Please enter email",
                                         duration: Toast.lengthShort,
