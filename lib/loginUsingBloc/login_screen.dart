@@ -196,7 +196,7 @@ class _SignInClassState extends State<SignInClass> {
                           BlocBuilder<LoginBloc, LoginState>(
                             builder: (context, state) {
                               if (state is LoginSuccessfullyMessageState) {
-                                print('objectasssssss');
+                                print('objects');
                               }
                               return Padding(
                                 padding: const EdgeInsets.only(
