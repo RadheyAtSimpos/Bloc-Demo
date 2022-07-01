@@ -1,7 +1,7 @@
-import 'package:bloc_demo/counterUsingBloc/bloc_observer.dart';
-import 'package:bloc_demo/counterUsingBloc/counter_bloc.dart';
-import 'package:bloc_demo/counterUsingBloc/counter_event.dart';
-import 'package:bloc_demo/counterUsingBloc/counter_state.dart';
+import 'package:bloc_demo/toDoUsingBloc/bloc_observer.dart';
+import 'package:bloc_demo/toDoUsingBloc/toDo_bloc.dart';
+import 'package:bloc_demo/toDoUsingBloc/toDo_event.dart';
+import 'package:bloc_demo/toDoUsingBloc/toDo_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:toast/toast.dart';
@@ -17,13 +17,31 @@ class ToDoMainScreen extends StatefulWidget {
   const ToDoMainScreen({Key? key}) : super(key: key);
 
   @override
-  ToDoMainScreenState createState() => ToDoMainScreenState();
+  State<ToDoMainScreen> createState() => ToDoMainScreenState();
 }
 
 class ToDoMainScreenState extends State<ToDoMainScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ToDoBloc(),
+      child: const ToDoTaskScreen(),
+    );
+  }
+}
 
-  final controllerArrayValue = TextEditingController();
-  var strArrInput = <String>[];
+class ToDoTaskScreen extends StatefulWidget {
+  const ToDoTaskScreen({Key? key}) : super(key: key);
+
+  @override
+  ToDoTaskScreenState createState() => ToDoTaskScreenState();
+}
+
+class ToDoTaskScreenState extends State<ToDoTaskScreen> {
+  var controllerTaskValue = TextEditingController();
+  final controllerUpdateTaskValue = TextEditingController();
+  List<String> listAddedTasks = [];
+  var isSendUpdateEvent = false;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +49,6 @@ class ToDoMainScreenState extends State<ToDoMainScreen> {
     return MaterialApp(
       home: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: true,
           centerTitle: true,
           backgroundColor: Colors.pink,
           title: const Text(
@@ -50,14 +67,18 @@ class ToDoMainScreenState extends State<ToDoMainScreen> {
                 color: Colors.black12,
                 child: Row(
                   children: [
-                    Flexible(
+                    BlocBuilder<ToDoBloc, ToDoState>(builder: (context, state) {
+                      if (state is UpdateTaskIconClickedState) {
+                        controllerTaskValue = TextEditingController(
+                            text: state.strOldValueOfTask);
+                      }
+                      return Flexible(
                         flex: 8,
                         child: Padding(
                           padding: const EdgeInsets.all(10.0),
                           child: TextField(
                             cursorColor: Colors.black,
-                            // focusNode: focusNodeArrayValue,
-                            controller: controllerArrayValue,
+                            controller: controllerTaskValue,
                             keyboardType: TextInputType.multiline,
                             style: const TextStyle(
                                 fontSize: 14.0, color: Colors.black),
@@ -73,8 +94,21 @@ class ToDoMainScreenState extends State<ToDoMainScreen> {
                               ),
                             ),
                           ),
-                        )),
-                    Flexible(
+                        ),
+                      );
+                    }),
+                    BlocBuilder<ToDoBloc, ToDoState>(builder: (context, state) {
+                      int intOldValueIndex;
+                      if (state is UpdateTaskIconClickedState) {
+                        isSendUpdateEvent = true;
+                        intOldValueIndex = state.intOldValueIndex;
+                        print('its UpdateTaskIconClickedState');
+                      } else {
+                        isSendUpdateEvent = false;
+                        intOldValueIndex = 0;
+                        print('its Not UpdateTaskIconClickedState');
+                      }
+                      return Flexible(
                         flex: 1,
                         child: Padding(
                           padding:
@@ -82,17 +116,32 @@ class ToDoMainScreenState extends State<ToDoMainScreen> {
                           child: IconButton(
                             icon: const Icon(Icons.send, color: Colors.pink),
                             onPressed: () async {
-
-                             /* if (controllerArrayValue.text.isNotEmpty) {
-                                onAddItemClicked();
+                              if (isSendUpdateEvent) {
+                                if (controllerTaskValue.text.isNotEmpty) {
+                                  BlocProvider.of<ToDoBloc>(context).add(UpdateTaskEvent(
+                                      strUpdateTaskValue:
+                                      controllerTaskValue.text.toString(),
+                                      intUpdateTaskIndex: intOldValueIndex));
+                                  controllerTaskValue.clear();
+                                } else {
+                                  print('Please enter value');
+                                }
                               } else {
-                                showToast("Please enter value",
-                                    duration: Toast.lengthShort,
-                                    gravity: Toast.bottom);
-                              }*/
+                                if (controllerTaskValue.text.isNotEmpty) {
+                                  BlocProvider.of<ToDoBloc>(context).add(
+                                      AddTaskEvent(
+                                          strAddTaskValue:
+                                              controllerTaskValue.text));
+                                  controllerTaskValue.clear();
+                                } else {
+                                  print('Please enter value');
+                                }
+                              }
                             },
                           ),
-                        ))
+                        ),
+                      );
+                    }),
                   ],
                 ),
               )),
@@ -102,43 +151,110 @@ class ToDoMainScreenState extends State<ToDoMainScreen> {
   }
 
   setupToDoList(BuildContext context) {
-    return ListView.builder(
-      itemCount: strArrInput.length,
-      itemBuilder: (context, index) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(7, 3, 7, 2),
-          child: Card(
-            color: const Color(0xFFFCE4EC),
-            shadowColor: Colors.blueGrey,
-            child: ListTile(
-                onTap: () {},
-                title: Text(strArrInput[index],
-                    overflow: TextOverflow.ellipsis,
-                    style:
-                    const TextStyle(fontSize: 18.0, color: Colors.black)),
-                trailing: SizedBox(
-                    height: 100,
-                    width: 100,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.black),
-                          onPressed: () async {
-                            dialogDeleteValue(index, strArrInput[index]);
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.black),
-                          onPressed: () async {
-                            dialogUpdateValue(index, strArrInput[index]);
-                          },
-                        ),
-                      ],
-                    ))),
-          ),
-        );
-      },
-    );
+    return BlocBuilder<ToDoBloc, ToDoState>(builder: (context, state) {
+      if (state is AddTaskToListState) {
+        listAddedTasks = state.listAddedTask;
+        print('Add task performed');
+      }
+
+      if (state is UpdateTaskState) {
+        print(
+            'Update value is: ${state.strUpdateTaskState} and index is: ${state.intUpdateTaskIndex}');
+      }
+
+      return ListView.builder(
+        itemCount: listAddedTasks.length,
+        itemBuilder: (context, index) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(7, 3, 7, 2),
+            child: Card(
+              color: const Color(0xFFFCE4EC),
+              shadowColor: Colors.blueGrey,
+              child: ListTile(
+                  onTap: () {},
+                  title: Text(listAddedTasks[index],
+                      overflow: TextOverflow.ellipsis,
+                      style:
+                          const TextStyle(fontSize: 18.0, color: Colors.black)),
+                  trailing: SizedBox(
+                      height: 100,
+                      width: 100,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.black),
+                            onPressed: () async {
+                              BlocProvider.of<ToDoBloc>(context).add(
+                                  RemoveTaskEvent(intRemoveTaskIndex: index));
+                              setState(() {});
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.black),
+                            onPressed: () async {
+                              BlocProvider.of<ToDoBloc>(context).add(
+                                  UpdateTaskIconClickedEvent(
+                                      strOldValueOfTask:
+                                          listAddedTasks[index], intOldValueIndex: index));
+
+                              /*showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: Text("Are you sure you want to edit " + listAddedTasks[index] + "?",
+                                        style: const TextStyle(fontSize: 16.0)),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('CANCEL',
+                                            style: TextStyle(fontSize: 16.0, color: Colors.black)),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          if (controllerUpdateTaskValue.text.isNotEmpty) {
+                                            BlocProvider.of<ToDoBloc>(context).add(UpdateTaskEvent(
+                                                strUpdateTaskValue:
+                                                controllerUpdateTaskValue.text.toString(),
+                                                intUpdateTaskIndex: index));
+                                            Navigator.pop(context);
+                                          } else {
+                                            print("Please enter value");
+                                          }
+                                        },
+                                        child: const Text('YES',
+                                            style: TextStyle(fontSize: 16.0, color: Colors.black)),
+                                      ),
+                                    ],
+                                    content: TextField(
+                                      cursorColor: Colors.black,
+                                      keyboardType: TextInputType.multiline,
+                                      // focusNode: focusNodeUpdateValue,
+                                      controller: controllerUpdateTaskValue..text = listAddedTasks[index],
+                                      style: const TextStyle(fontSize: 14.0, color: Colors.black),
+                                      decoration: const InputDecoration(
+                                        hintText: "Please enter new value",
+                                        hintStyle: TextStyle(fontSize: 14, color: Colors.grey),
+                                        enabledBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black),
+                                        ),
+                                        focusedBorder: UnderlineInputBorder(
+                                          borderSide: BorderSide(color: Colors.black),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                              // dialogUpdateValue(index, listAddedTasks[index]);*/
+                            },
+                          ),
+                        ],
+                      ))),
+            ),
+          );
+        },
+      );
+    });
   }
 }
